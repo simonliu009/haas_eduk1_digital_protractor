@@ -66,8 +66,6 @@ def read_MPU6050():
     return (ac[0], ac[1], ac[2], gy[0], gy[1], gy[2])
 
 def calibrate_sensors():
-    print("---=== Start MPU6050 Calibration ===---")
-
     x_accel = 0
     y_accel = 0
     z_accel = 0
@@ -109,7 +107,7 @@ def calibrate_sensors():
     calib_y_gyro  = y_gyro
     calib_z_gyro  = z_gyro
 
-    print("---=== Finish MPU650 Calibration ===---")
+    print("---=== Finishing Calibration ===---")
 
 
 mpu6050Dev = MPU6050()
@@ -135,7 +133,6 @@ display = sh1106.SH1106_SPI(width=132, height=64, spi=spi0, dc = gpio_dc, res = 
 # display.init_display()
 ac = []
 gy = []
-angle_y = [0]* 5
 while (True):
     
     t_now = utime.ticks_ms()
@@ -160,13 +157,20 @@ while (True):
     set_last_read_angles(t_now, c_angle_x, c_angle_y)
     # xstr = "anglex : " + str(c_angle_x)
     # ystr = "angely : " + str(c_angle_y)
-    ystr = format(c_angle_y, ".1f")
+    ystr = ("{:.1f}".format(c_angle_y))
     
     display.fill(0)
 
     # display.text(xstr, 20, 20, 2)
-    display.text(ystr, 20, 40, 4)
-
+    display.text(ystr, 20, 40, 32)
+    # ac = mpu6050Dev.get_Accelerometer()
+    # print("mpu6050 acc is: ", ac[0], ac[1], ac[2])
+    # ac0_str = "ac[0] : " + str(ac[0])
+    # ac1_str = "ac[1] : " + str(ac[1])
+    # ac2_str = "ac[2] : " + str(ac[2])
+    # display.text(ac0_str, 20, 0, 2)
+    # display.text(ac0_str, 20, 20, 2)
+    # display.text(ac0_str, 20, 40, 2)
     
     #display.fill_circle(50, 30, 20, 0xAF)
     #display.draw_circle(90, 30, 20, 2, 0xAF)
@@ -176,5 +180,3 @@ while (True):
 # display.test()
 mpu6050Dev.close()
 print("test mpu6050 success!")
-
-
