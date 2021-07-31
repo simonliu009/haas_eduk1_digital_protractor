@@ -23,8 +23,10 @@ calib_y_accel = 0.0
 calib_z_accel = 0.0 
 calib_x_gyro  = 0.0 
 calib_y_gyro  = 0.0 
-calib_z_gyro  = 0.0 
+calib_z_gyro = 0.0
 
+# angle_y = []
+offset = 4.7
 def set_last_read_angles(time, x, y):
     global last_read_time, last_x_angle, last_y_angle
     last_read_time = time
@@ -81,7 +83,8 @@ def calibrate_sensors():
     gy = mpu6050Dev.get_Gyroscope()
 
     # Read and average the raw values from the IMU
-    for int in range(100): 
+    calibrate_cnt = 100
+    for i in range(calibrate_cnt): 
         ac = mpu6050Dev.get_Accelerometer()
         gy = mpu6050Dev.get_Gyroscope()
         x_accel += ac[0]
@@ -92,12 +95,12 @@ def calibrate_sensors():
         z_gyro  += gy[2]
         utime.sleep_ms(10)
     
-    x_accel /= 10
-    y_accel /= 10
-    z_accel /= 10
-    x_gyro  /= 10
-    y_gyro  /= 10
-    z_gyro  /= 10
+    x_accel /= calibrate_cnt
+    y_accel /= calibrate_cnt
+    z_accel /= calibrate_cnt
+    x_gyro  /= calibrate_cnt
+    y_gyro  /= calibrate_cnt
+    z_gyro  /= calibrate_cnt
 
     # Store the raw calibration values globally
     calib_x_accel = x_accel
@@ -109,30 +112,41 @@ def calibrate_sensors():
 
     print("---=== Finishing Calibration ===---")
 
-
-mpu6050Dev = MPU6050()
-mpu6050Dev.open("mpu6050")
-mpu6050Dev.init()
-print("mpu6050 init finished")
-
-calibrate_sensors()
-
-kalmanX = KalmanAngle()
-kalmanY = KalmanAngle()
-
 spi0 = SPI()
 spi0.open("oled_spi")
+print("SPI init finished")
 
 gpio_dc = GPIO()
 gpio_dc.open("oled_dc")
 
 gpio_res = GPIO()
 gpio_res.open("oled_res")
+print("GPIO opened")
 
 display = sh1106.SH1106_SPI(width=132, height=64, spi=spi0, dc = gpio_dc, res = gpio_res)
+
+display.fill(0)
+display.text("Init MPU6050", 10, 30, 1)
+display.show()
+utime.sleep_ms(1500)
+mpu6050Dev = MPU6050()
+mpu6050Dev.open("mpu6050")
+mpu6050Dev.init()
+print("mpu6050 init finished")
+display.fill(0)
+display.text("MPU6050 init OK", 0, 20, 1)
+display.text("Calibrate sensor", 0, 40, 1)
+display.show()
+calibrate_sensors()
+
+kalmanX = KalmanAngle()
+kalmanY = KalmanAngle()
+
+
 # display.init_display()
 ac = []
 gy = []
+ystr = ""
 while (True):
     
     t_now = utime.ticks_ms()
@@ -155,28 +169,14 @@ while (True):
     (k_angle_x, k_angle_y) = k_filtered_angle(acc_angles[0], acc_angles[1], Gx, Gy, dt)
 
     set_last_read_angles(t_now, c_angle_x, c_angle_y)
-    # xstr = "anglex : " + str(c_angle_x)
-    # ystr = "angely : " + str(c_angle_y)
+    c_angle_y += offset
     ystr = ("{:.1f}".format(c_angle_y))
-    
     display.fill(0)
-
-    # display.text(xstr, 20, 20, 2)
-    display.text(ystr, 20, 40, 32)
-    # ac = mpu6050Dev.get_Accelerometer()
-    # print("mpu6050 acc is: ", ac[0], ac[1], ac[2])
-    # ac0_str = "ac[0] : " + str(ac[0])
-    # ac1_str = "ac[1] : " + str(ac[1])
-    # ac2_str = "ac[2] : " + str(ac[2])
-    # display.text(ac0_str, 20, 0, 2)
-    # display.text(ac0_str, 20, 20, 2)
-    # display.text(ac0_str, 20, 40, 2)
-    
-    #display.fill_circle(50, 30, 20, 0xAF)
-    #display.draw_circle(90, 30, 20, 2, 0xAF)
-    # display.draw_circle(66, 32, 10, 1, 1)
-    # display.fill_circle(int(66 - ac[0] / 250), int(32 + ac[1] / 500), 8, 1)
+    display.text(ystr, 55, 30, 1)
     display.show()
-# display.test()
+    utime.sleep_ms(10)
+
+
+
 mpu6050Dev.close()
 print("test mpu6050 success!")
