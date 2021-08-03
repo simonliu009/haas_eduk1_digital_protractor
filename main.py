@@ -1,5 +1,6 @@
 import sh1106
 import utime, math
+import sys
 from driver import SPI
 from driver import GPIO
 from kalman import KalmanAngle
@@ -27,6 +28,48 @@ calib_z_gyro = 0.0
 
 # angle_y = []
 offset = 4.7
+
+def _get_ch(ch):
+    global _file
+    if _file is None:
+        _file = open('./ascii32.txt', 'r')
+
+    _file.seek(ord(ch) * 329)
+    get_line1 = _file.readline()
+    get_line2 = _file.readline()
+
+    data = []
+    n = 0
+    for v in get_line1.split(','):
+        data.append(int(v))
+        n += 1
+        if n == 32:
+            break
+    n = 0
+    for v in get_line2.split(','):
+        data.append(int(v))
+        n += 1
+        if n == 32:
+            break
+    return data
+
+def text32(oled, string, x_axis, y_axis):
+    offset = 0
+    for k in string:
+        byte_data = _get_ch(k)
+        for y in range(0, 32):
+            a = bin(byte_data[y]).replace('0b', '')
+            while len(a) < 8:
+                a = '0' + a
+
+            b = bin(byte_data[y + 32]).replace('0b', '')
+            while len(b) < 8:
+                b = '0' + b
+            for x in range(0, 8):
+                oled.pixel(x_axis + offset + x, y + y_axis, int(a[x]))
+                oled.pixel(x_axis + offset + x + 8, y + y_axis, int(b[x]))
+        offset += 16
+
 def set_last_read_angles(time, x, y):
     global last_read_time, last_x_angle, last_y_angle
     last_read_time = time
@@ -143,40 +186,43 @@ kalmanX = KalmanAngle()
 kalmanY = KalmanAngle()
 
 
-# display.init_display()
-ac = []
-gy = []
-ystr = ""
-while (True):
-    
-    t_now = utime.ticks_ms()
-    dt = (t_now - last_read_time)/1000.0
-    acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z = read_MPU6050()
+def main():
+    ac = []
+    gy = []
+    ystr = ""
+    while (True):
+        
+        t_now = utime.ticks_ms()
+        dt = (t_now - last_read_time)/1000.0
+        acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z = read_MPU6050()
 
-    #Full scale range +/- 250 degree/C as per sensitivity scale factor. The is linear acceleration in each of the 3 directions ins g's
-    Ax = acc_x/16384.0
-    Ay = acc_y/16384.0
-    Az = acc_z/16384.0
-    
-    # This is angular velocity in each of the 3 directions 
-    Gx = (gyro_x - calib_x_gyro)/131.0
-    Gy = (gyro_y - calib_y_gyro)/131.0
-    Gz = (gyro_z - calib_z_gyro)/131.0
+        #Full scale range +/- 250 degree/C as per sensitivity scale factor. The is linear acceleration in each of the 3 directions ins g's
+        Ax = acc_x/16384.0
+        Ay = acc_y/16384.0
+        Az = acc_z/16384.0
+        
+        # This is angular velocity in each of the 3 directions 
+        Gx = (gyro_x - calib_x_gyro)/131.0
+        Gy = (gyro_y - calib_y_gyro)/131.0
+        Gz = (gyro_z - calib_z_gyro)/131.0
 
-    acc_angles = acc_angle(Ax, Ay, Az) # Calculate angle of inclination or tilt for the x and y axes with acquired acceleration vectors
-    gyr_angles = gyr_angle(Gx, Gy, Gz, dt) # Calculate angle of inclination or tilt for x,y and z axes with angular rates and dt 
-    (c_angle_x, c_angle_y) = c_filtered_angle(acc_angles[0], acc_angles[1], gyr_angles[0], gyr_angles[1]) # filtered tilt angle i.e. what we're after
-    (k_angle_x, k_angle_y) = k_filtered_angle(acc_angles[0], acc_angles[1], Gx, Gy, dt)
+        acc_angles = acc_angle(Ax, Ay, Az) # Calculate angle of inclination or tilt for the x and y axes with acquired acceleration vectors
+        gyr_angles = gyr_angle(Gx, Gy, Gz, dt) # Calculate angle of inclination or tilt for x,y and z axes with angular rates and dt 
+        (c_angle_x, c_angle_y) = c_filtered_angle(acc_angles[0], acc_angles[1], gyr_angles[0], gyr_angles[1]) # filtered tilt angle i.e. what we're after
+        (k_angle_x, k_angle_y) = k_filtered_angle(acc_angles[0], acc_angles[1], Gx, Gy, dt)
 
-    set_last_read_angles(t_now, c_angle_x, c_angle_y)
-    c_angle_y += offset
-    ystr = ("{:.1f}".format(c_angle_y))
-    display.fill(0)
-    display.text(ystr, 55, 30, 1)
-    display.show()
-    utime.sleep_ms(10)
+        set_last_read_angles(t_now, c_angle_x, c_angle_y)
+        c_angle_y += offset
+        ystr = ("{:.1f}".format(c_angle_y))
+        display.fill(0)
+        # display.text(ystr, 55, 30, 1)
+        text32(display,ystr,32,16)
+        display.show()
+        utime.sleep_ms(10)
+    mpu6050Dev.close()
+    print("test mpu6050 success!")
 
 
 
-mpu6050Dev.close()
-print("test mpu6050 success!")
+if __name__ == "__main__":
+    main()
