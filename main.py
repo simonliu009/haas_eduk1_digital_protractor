@@ -25,7 +25,9 @@ calib_x_gyro  = 0.0
 calib_y_gyro  = 0.0 
 calib_z_gyro = 0.0
 
+# 用于校准的默认偏移量，可根据开发板的具体情况微调
 offset = 4.7
+
 def set_last_read_angles(time, x, y):
     global last_read_time, last_x_angle, last_y_angle
     last_read_time = time
