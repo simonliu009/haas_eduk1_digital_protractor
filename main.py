@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+# -*- coding:utf-8 -*-
+###
+# Filename: /Users/simonliu/aos-works/solutions/digital_protractor/main.py
+# Path: /Users/simonliu/aos-works/solutions/digital_protractor
+# Created Date: Friday, July 30th 2021, 10:59:56 am
+# Author: Simon Liu
+# 
+# Copyright (c) 2021 SimonLiu Inc.
+###
 import sh1106
 import utime, math
 import sys
