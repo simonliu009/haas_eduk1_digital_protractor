@@ -8,5 +8,5 @@
 [更优的工具，更方便的语言，使用HaaS Studio开发Python轻应用_HaaS技术社区的博客-CSDN博客](https://blog.csdn.net/HaaSTech/article/details/118997742)
 
 # 注意事项:
-* 原生固件仅支持一个字体和字号。`bigfonts`支持了更大字号但是显示延时严重，欢迎各位大佬优化并发送pull request。
+* 原生固件仅支持一个字体和字号。`bigfonts`分支在不改动底层固件的情况下尝试支持更大字号显示但显示延时严重，欢迎各位大佬优化并发送pull request。
 * board平台统一的配置文件为:/data/python-apps/driver/board.json
