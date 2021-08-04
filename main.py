@@ -10,7 +10,6 @@
 ###
 import sh1106
 import utime, math
-import sys
 from driver import SPI
 from driver import GPIO
 from kalman import KalmanAngle
