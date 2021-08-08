@@ -174,9 +174,14 @@ def main():
         (c_angle_x, c_angle_y) = c_filtered_angle(acc_angles[0], acc_angles[1], gyr_angles[0], gyr_angles[1]) # filtered tilt angle i.e. what we're after
         (k_angle_x, k_angle_y) = k_filtered_angle(acc_angles[0], acc_angles[1], Gx, Gy, dt)
 
-        set_last_read_angles(t_now, c_angle_x, c_angle_y)
-        c_angle_y += offset
-        ystr = ("{:.1f}".format(c_angle_y))
+        # set_last_read_angles(t_now, c_angle_x, c_angle_y)
+        # c_angle_y += offset
+        # ystr = ("{:.1f}".format(c_angle_y))
+
+        set_last_read_angles(t_now, k_angle_x, k_angle_y)
+        k_angle_y += offset
+        ystr = ("{:.1f}".format(k_angle_y))
+        
         display.fill(0)
         display.text(ystr, 55, 30, 1)
         display.show()
