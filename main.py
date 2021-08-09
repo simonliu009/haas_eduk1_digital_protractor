@@ -171,17 +171,14 @@ def main():
 
         acc_angles = acc_angle(Ax, Ay, Az) # Calculate angle of inclination or tilt for the x and y axes with acquired acceleration vectors
         gyr_angles = gyr_angle(Gx, Gy, Gz, dt) # Calculate angle of inclination or tilt for x,y and z axes with angular rates and dt 
-        (c_angle_x, c_angle_y) = c_filtered_angle(acc_angles[0], acc_angles[1], gyr_angles[0], gyr_angles[1]) # filtered tilt angle i.e. what we're after
+        
+        # 卡尔曼滤波
         (k_angle_x, k_angle_y) = k_filtered_angle(acc_angles[0], acc_angles[1], Gx, Gy, dt)
-
-        # set_last_read_angles(t_now, c_angle_x, c_angle_y)
-        # c_angle_y += offset
-        # ystr = ("{:.1f}".format(c_angle_y))
 
         set_last_read_angles(t_now, k_angle_x, k_angle_y)
         k_angle_y += offset
         ystr = ("{:.1f}".format(k_angle_y))
-        
+
         display.fill(0)
         display.text(ystr, 55, 30, 1)
         display.show()
